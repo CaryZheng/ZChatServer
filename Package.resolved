@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/vapor/crypto.git",
         "state": {
           "branch": null,
-          "revision": "a5598aba7a118c29b224122c16598a1919b9e67d",
-          "version": "3.0.1"
+          "revision": "e7b51ee4d46723734891ca904a4ab6b5f9e26959",
+          "version": "3.1.0"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/vapor/multipart.git",
         "state": {
           "branch": null,
-          "revision": "d7b641af117910e66781022c1c82638216cad62c",
-          "version": "3.0.0"
+          "revision": "7778dcb62f3efa845e8e2808937bb347575ba7ce",
+          "version": "3.0.1"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "91ef938c60061784ba8734a73d61b7810494f9b3",
-          "version": "1.5.0"
+          "revision": "902b18df16897da644724bd4b85b4bbe952ac9c6",
+          "version": "1.5.1"
         }
       },
       {
@@ -134,6 +134,15 @@
           "branch": null,
           "revision": "37760e9a52030bb9011972c5213c3350fa9d41fd",
           "version": "1.0.0"
+        }
+      },
+      {
+        "package": "SwiftyJSON",
+        "repositoryURL": "https://github.com/IBM-Swift/SwiftyJSON.git",
+        "state": {
+          "branch": null,
+          "revision": "7eb6c83f91c519c19e6a507d604c9176d5ae5b15",
+          "version": "17.0.1"
         }
       },
       {

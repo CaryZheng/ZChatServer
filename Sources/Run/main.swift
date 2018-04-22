@@ -2,6 +2,7 @@ import App
 //import Service
 import Vapor
 //import Foundation
+import SwiftyJSON
 
 // The contents of main are wrapped in a do/catch block because any errors that get raised to the top level will crash Xcode
 //do {
@@ -50,13 +51,32 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
     ws.onText { ws, string in
         print("Receive text: \(string)")
 
-        let targetUserId = string
-
-        if let connection = clientConnections[targetUserId] {
-            connection.send("Send UserId: \(clientUserId) msg: Hi")
-        } else {
-            ws.send("The user_\(targetUserId) is not online")
+        let json = JSON(data: string.data(using: .utf8)!)
+        
+        let code = json["code"].intValue
+        if 1001 == code {
+            // singin
+            let userId = json["data"]["userId"].stringValue
+            
+            for (key, wsValue) in clientConnections {
+                if key == userId {
+                    continue
+                } else {
+                    wsValue.send("The user_\(userId) is online")
+                }
+            }
         }
+        
+//        let targetUserId = json["userId"].string
+//        if let targetUserId = targetUserId {
+//            if let connection = clientConnections[targetUserId] {
+//                connection.send("Send UserId: \(clientUserId) msg: Hi")
+//            } else {
+//                ws.send("The user_\(targetUserId) is not online")
+//            }
+//        } else {
+//            ws.send("Error")
+//        }
     }
 
     ws.onBinary { ws, data in
