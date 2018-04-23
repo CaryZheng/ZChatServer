@@ -1,5 +1,4 @@
 enum ProtocolCode: Int, Codable {
-    case signin = 1001
     case enterRoom = 2001
     case leaveRoom = 2002
     

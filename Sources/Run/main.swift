@@ -28,8 +28,6 @@ import SwiftyJSON
 
 var rooms: [Int: Room] = [:]
 
-var clientConnections: [String: WebSocket] = [:]
-
 let group = MultiThreadedEventLoopGroup(numThreads: 1)
 
 let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
@@ -42,7 +40,8 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
 
     ws.send("Hello World from ZChatServer")
     
-    var clientUserId: String = ""
+    var currentRoomId: Int = 0
+    var currentClientUserId: String = ""
 
     ws.onText { ws, string in
         print("Receive text: \(string)")
@@ -50,18 +49,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
         let json = JSON(data: string.data(using: .utf8)!)
         
         let code = json["code"].intValue
-        if ProtocolCode.signin.rawValue == code {
-            // singin
-            let userId = json["data"]["userId"].stringValue
-            
-            let connection = clientConnections[userId]
-            if nil == connection {
-                clientUserId = userId
-                clientConnections[userId] = ws
-            }
-            
-            ws.send("The user_\(userId) signin")
-        } else if ProtocolCode.enterRoom.rawValue == code {
+        if ProtocolCode.enterRoom.rawValue == code {
             // Enter room
             guard let roomNum = json["data"]["roomNum"].int else { return }
             guard let userId = json["data"]["userId"].string else { return }
@@ -71,6 +59,9 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
                 room = Room()
                 
                 rooms[roomNum] = room
+                
+                currentClientUserId = userId
+                currentRoomId = roomNum
             }
             
             room!.addUser(userId: userId, ws: ws)
@@ -82,6 +73,11 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
             guard let room: Room = rooms[roomNum] else { return }
             
             room.removeUser(userId: userId)
+            
+            let peopleInRoomCount = room.peopleCount()
+            if peopleInRoomCount == 0 {
+                rooms[roomNum] = nil
+            }
         }
     }
 
@@ -90,9 +86,18 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
     }
 
     ws.onClose.always {
-        print("Closed, clientUserId = \(clientUserId)")
-
-        clientConnections[clientUserId] = nil
+        print("Closed, clientUserId = \(currentClientUserId)")
+        
+        if let room = rooms[currentRoomId] {
+            if room.isUserInRoom(userId: currentClientUserId) {
+                room.removeUser(userId: currentClientUserId)
+                
+                let peopleInRoomCount = room.peopleCount()
+                if peopleInRoomCount == 0 {
+                    rooms[currentRoomId] = nil
+                }
+            }
+        }
     }
 
 })

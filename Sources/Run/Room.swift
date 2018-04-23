@@ -28,6 +28,16 @@ public class Room {
     
     public init() {}
     
+    public func isUserInRoom(userId: String) -> Bool {
+        for (key, _) in mClientConnections {
+            if key == userId {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
     public func addUser(userId: String, ws: WebSocket) {
         let connection = mClientConnections[userId]
         if nil == connection {
@@ -59,6 +69,10 @@ public class Room {
         let msg = JSONUtility.convertToString(result)
         
         sendMsgToOthers(excludeUserId: userId, msg: msg)
+    }
+    
+    func peopleCount() -> Int {
+        return mClientConnections.count
     }
     
     /// Send message to other users
