@@ -40,7 +40,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
     return [:]
 }, onUpgrade: { ws, req in
 
-    ws.send("Hello Client from ZChatServer")
+    ws.send("Hello World from ZChatServer")
     
     var clientUserId: String = ""
 
@@ -50,7 +50,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
         let json = JSON(data: string.data(using: .utf8)!)
         
         let code = json["code"].intValue
-        if RequestCode.signin.rawValue == code {
+        if ProtocolCode.signin.rawValue == code {
             // singin
             let userId = json["data"]["userId"].stringValue
             
@@ -61,7 +61,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
             }
             
             ws.send("The user_\(userId) signin")
-        } else if RequestCode.enterRoom.rawValue == code {
+        } else if ProtocolCode.enterRoom.rawValue == code {
             // Enter room
             guard let roomNum = json["data"]["roomNum"].int else { return }
             guard let userId = json["data"]["userId"].string else { return }
@@ -74,7 +74,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
             }
             
             room!.addUser(userId: userId, ws: ws)
-        } else if RequestCode.leaveRoom.rawValue == code {
+        } else if ProtocolCode.leaveRoom.rawValue == code {
             // Leave room
             guard let roomNum = json["data"]["roomNum"].int else { return }
             guard let userId = json["data"]["userId"].string else { return }
@@ -100,7 +100,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
 struct MyResponder: HTTPServerResponder {
 
     func respond(to request: HTTPRequest, on worker: Worker) -> Future<HTTPResponse> {
-       let res = HTTPResponse(status: .ok, body: "This is a ZChat WebSocket server")
+        let res = HTTPResponse(status: .ok, body: "This is a ZChat WebSocket server")
 
         return worker.eventLoop.newSucceededFuture(result: res)
     }
@@ -108,7 +108,6 @@ struct MyResponder: HTTPServerResponder {
 }
 
 let server = try HTTPServer.start(hostname: "127.0.0.1", port: 8080, responder: MyResponder(), upgraders: [ws], on: group) { error in
-
     print("HTTPServer error = \(error)")
 }.wait()
 

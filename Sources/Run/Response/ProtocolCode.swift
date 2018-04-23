@@ -1,6 +1,5 @@
-import Foundation
-
-enum ResponseCode: Int, Codable {
+enum ProtocolCode: Int, Codable {
+    case signin = 1001
     case enterRoom = 2001
     case leaveRoom = 2002
     
@@ -13,5 +12,4 @@ enum ResponseCode: Int, Codable {
     }
     
 }
-
 

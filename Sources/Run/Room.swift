@@ -35,7 +35,7 @@ public class Room {
         }
         
         let result: [String: Any] = [
-            "code": ResponseCode.enterRoom.rawValue,
+            "code": ProtocolCode.enterRoom.rawValue,
             "data": [
                 "userId": userId
             ]
@@ -50,7 +50,7 @@ public class Room {
         mClientConnections[userId] = nil
         
         let result: [String: Any] = [
-            "code": ResponseCode.leaveRoom.rawValue,
+            "code": ProtocolCode.leaveRoom.rawValue,
             "data": [
                 "userId": userId
             ]
