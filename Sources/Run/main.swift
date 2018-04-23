@@ -26,6 +26,8 @@ import SwiftyJSON
 //    exit(1)
 //}
 
+var rooms: [Int: Room] = [:]
+
 var clientConnections: [String: WebSocket] = [:]
 
 let group = MultiThreadedEventLoopGroup(numThreads: 1)
@@ -38,15 +40,9 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
     return [:]
 }, onUpgrade: { ws, req in
 
-    let path = req.url.pathComponents
-
-    let clientUserId = path[1]
-    let connection = clientConnections[clientUserId]
-    if nil == connection {
-        clientConnections[clientUserId] = ws
-    }
-
     ws.send("Hello Client from ZChatServer")
+    
+    var clientUserId: String = ""
 
     ws.onText { ws, string in
         print("Receive text: \(string)")
@@ -54,29 +50,39 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
         let json = JSON(data: string.data(using: .utf8)!)
         
         let code = json["code"].intValue
-        if 1001 == code {
+        if RequestCode.signin.rawValue == code {
             // singin
             let userId = json["data"]["userId"].stringValue
             
-            for (key, wsValue) in clientConnections {
-                if key == userId {
-                    continue
-                } else {
-                    wsValue.send("The user_\(userId) is online")
-                }
+            let connection = clientConnections[userId]
+            if nil == connection {
+                clientUserId = userId
+                clientConnections[userId] = ws
             }
+            
+            ws.send("The user_\(userId) signin")
+        } else if RequestCode.enterRoom.rawValue == code {
+            // Enter room
+            guard let roomNum = json["data"]["roomNum"].int else { return }
+            guard let userId = json["data"]["userId"].string else { return }
+            
+            var room: Room? = rooms[roomNum]
+            if nil == room {
+                room = Room()
+                
+                rooms[roomNum] = room
+            }
+            
+            room!.addUser(userId: userId, ws: ws)
+        } else if RequestCode.leaveRoom.rawValue == code {
+            // Leave room
+            guard let roomNum = json["data"]["roomNum"].int else { return }
+            guard let userId = json["data"]["userId"].string else { return }
+            
+            guard let room: Room = rooms[roomNum] else { return }
+            
+            room.removeUser(userId: userId)
         }
-        
-//        let targetUserId = json["userId"].string
-//        if let targetUserId = targetUserId {
-//            if let connection = clientConnections[targetUserId] {
-//                connection.send("Send UserId: \(clientUserId) msg: Hi")
-//            } else {
-//                ws.send("The user_\(targetUserId) is not online")
-//            }
-//        } else {
-//            ws.send("Error")
-//        }
     }
 
     ws.onBinary { ws, data in
@@ -94,7 +100,7 @@ let ws = HTTPServer.webSocketUpgrader(shouldUpgrade: { req in
 struct MyResponder: HTTPServerResponder {
 
     func respond(to request: HTTPRequest, on worker: Worker) -> Future<HTTPResponse> {
-       let res = HTTPResponse(status: .ok, body: "This is a WebSocket server")
+       let res = HTTPResponse(status: .ok, body: "This is a ZChat WebSocket server")
 
         return worker.eventLoop.newSucceededFuture(result: res)
     }
